@@ -1,0 +1,9 @@
+{
+  "name": "notraffic-assignment",
+  "private": true,
+  "scripts": {
+    "start": "sh -c 'npm --prefix api run start:dev & npm --prefix app run dev & wait'",
+    "start:api": "npm --prefix api run start:dev",
+    "start:app": "npm --prefix app run dev"
+  }
+}
