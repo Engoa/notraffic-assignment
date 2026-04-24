@@ -60,7 +60,6 @@ pids/
 .env.development.local
 .env.test.local
 .env.production.local
-!.env.example
 
 # Testing
 # =======
@@ -126,3 +125,7 @@ desktop.ini
 .vercel/
 .netlify/
 .firebase/
+
+
+# TS
+tsconfig.ts*
