@@ -119,6 +119,7 @@ export function PolygonDetails({ manager }: PolygonDetailsProps) {
                     <Input
                       aria-invalid={Boolean(draftError)}
                       id="draft-name"
+                      disabled={isBusy}
                       onChange={(event) =>
                         setDraft((currentDraft) => ({
                           ...currentDraft,
@@ -153,6 +154,7 @@ export function PolygonDetails({ manager }: PolygonDetailsProps) {
                     <Input
                       aria-invalid={Boolean(editorError)}
                       id="polygon-name"
+                      disabled={isBusy}
                       onChange={(event) =>
                         setEditor((currentEditor) => ({
                           ...currentEditor,
@@ -245,7 +247,7 @@ export function PolygonDetails({ manager }: PolygonDetailsProps) {
               <div className="flex w-full flex-col gap-2">
                 <Button
                   className="w-full"
-                  disabled={isPolygonSaveDisabled}
+                  disabled={isPolygonSaveDisabled || isDeleting}
                   onClick={savePolygonDetails}
                 >
                   {isUpdating ? (
