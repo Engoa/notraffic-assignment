@@ -7,16 +7,26 @@ Assignment is split into two repos:
 
 ## API
 
-- `GET /api/v1/polygons`
-- `POST /api/v1/polygons`
-- `PATCH /api/v1/polygons/:polygonId`
-- `DELETE /api/v1/polygons/:polygonId`
-
-## Local Dev
-
-- Web: `http://127.0.0.1:5173/`
-- API: `http://127.0.0.1:5001/api/v1/polygons`
+- `GET /v1/polygons`
+- `POST /v1/polygons`
+- `PATCH /v1/polygons/:polygonId`
+- `DELETE /v1/polygons/:polygonId`
 
 ## Running
 
-While in root, run `npm run start` to initialize both the frontend and the backend.
+While in root directory, run the following:
+
+- `npm run setup` to install the dependencies on both the /app and /api
+- `npm run setup:env` to create `app/.env` and `api/.env` from the example files
+- `npm run start` to start both the /app and /api
+
+## Local Dev
+
+- Web: `http://localhost:5173`
+- API: `http://localhost:5001/api/v1/polygons`
+
+## Environment files
+
+- Vite reads `app/.env`
+- Nest reads `api/.env` or `api/.env.local`
+- `.env.example` files are templates and are not loaded automatically
