@@ -128,3 +128,6 @@ desktop.ini
 
 # TS
 tsconfig.ts*
+
+# DB file
+polygons.json

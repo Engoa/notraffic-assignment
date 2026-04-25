@@ -46,9 +46,9 @@ export const PolygonListItem: FC<PolygonListItemProps> = ({
               style={{ backgroundColor: polygon.color }}
             />
 
-            <div className="truncate text-sm font-medium text-foreground">
+            <span className="truncate font-medium text-foreground">
               {polygon.name}
-            </div>
+            </span>
           </div>
 
           <p className="mt-0.5 text-xs text-muted-foreground">

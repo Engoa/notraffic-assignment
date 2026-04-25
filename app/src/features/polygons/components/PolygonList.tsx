@@ -31,8 +31,8 @@ export function PolygonList({ manager }: PolygonListProps) {
 
       <CardContent className="flex min-h-0 flex-1 flex-col overflow-y-scroll">
         {isLoading ? (
-          <div className="flex h-full items-center justify-center gap-2 text-sm text-muted-foreground">
-            <LoaderCircleIcon className="animate-spin" />
+          <div className="flex h-full items-center justify-center gap-2 text-muted-foreground">
+            <LoaderCircleIcon className="animate-spin text-primary" />
             Loading polygons...
           </div>
         ) : polygons.length === 0 ? (

@@ -22,7 +22,7 @@ export function Polygons() {
                 <CardTitle className="font-heading text-3xl">
                   Polygon Manager
                 </CardTitle>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-muted-foreground">
                   Draw, save, recolor, and manage polygons on the canvas.
                 </p>
               </div>
@@ -39,7 +39,7 @@ export function Polygons() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-col gap-1">
                 <CardTitle className="font-heading text-xl">Canvas</CardTitle>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-muted-foreground">
                   Click the board to start a polygon. Click a saved shape to
                   inspect it.
                 </p>

@@ -45,6 +45,7 @@ function getImagePoint(event: MouseEvent<HTMLCanvasElement>): PolygonPoint {
   const scaleX = POLYGON_IMAGE_SIZE.width / bounds.width
   const scaleY = POLYGON_IMAGE_SIZE.height / bounds.height
 
+  // Clicks happen in the rendered canvas space, but polygon data lives in image coords.
   return [
     Number(((event.clientX - bounds.left) * scaleX).toFixed(1)),
     Number(((event.clientY - bounds.top) * scaleY).toFixed(1)),
@@ -227,7 +228,7 @@ export function PolygonCanvas({ manager }: PolygonCanvasProps) {
 
       <div className="relative flex-1 overflow-hidden rounded-xl border bg-muted/50">
         <div className="pointer-events-none absolute top-3 right-3 left-3 z-10 flex flex-wrap items-center gap-2">
-          <Badge className="text-sm">
+          <Badge>
             <MousePointerClickIcon />
             {draft.points.length > 0
               ? "Keep clicking to shape the polygon"
@@ -290,6 +291,7 @@ function shouldSnapToFirstPoint(points: PolygonPoint[], point: PolygonPoint) {
 }
 
 function scalePoint(point: PolygonPoint, stageSize: StageSize): PolygonPoint {
+  // Inverse of getImagePoint basically, so redraws still line up after resize/zoom.
   return [
     (point[0] / POLYGON_IMAGE_SIZE.width) * stageSize.width,
     (point[1] / POLYGON_IMAGE_SIZE.height) * stageSize.height,
@@ -338,6 +340,7 @@ function drawPolygon({
   context.restore()
 
   if (isSelected) {
+    // Extra pass just for the selected polygon glow, keeps the normal stroke cleaner.
     context.save()
     context.beginPath()
     context.moveTo(scaledPoints[0][0], scaledPoints[0][1])
@@ -394,7 +397,7 @@ function drawDraft({
   const firstPoint = scaledPoints[0]
   const lastPoint = scaledPoints.at(-1) ?? firstPoint
 
-  // When hover snaps to the first point, the preview shifts into "ready to close" mode.
+  // If hover snaps back to point zero we switch the preview into close mode.
   const isHoveringCloseTarget =
     hoverPoint !== null &&
     hoverPoint[0] === points[0]?.[0] &&
@@ -445,6 +448,7 @@ function drawDraft({
   }
 
   if (scaledHoverPoint && canClose) {
+    // This last guide line helps show whether the next click will add a point or finish it.
     context.beginPath()
     context.setLineDash(isHoveringCloseTarget ? [2, 4] : [3, 7])
     context.moveTo(scaledHoverPoint[0], scaledHoverPoint[1])

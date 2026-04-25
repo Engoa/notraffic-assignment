@@ -44,7 +44,7 @@ export const ColorField = ({
             />
           </label>
 
-          <div className="flex flex-1 items-center gap-2 rounded-lg border bg-background px-3 py-2 text-sm">
+          <div className="flex flex-1 items-center gap-2 rounded-lg border bg-background px-3 py-2">
             <PaintbrushVerticalIcon className="text-muted-foreground" />
             <span className="truncate font-mono">{color}</span>
           </div>

@@ -32,12 +32,11 @@ export function isPointInsidePolygon(
   let isInside = false
   const [x, y] = point
 
-  for (
-    let currentIndex = 0, previousIndex = polygonPoints.length - 1;
-    currentIndex < polygonPoints.length;
-    previousIndex = currentIndex, currentIndex += 1
-  ) {
-    const [currentX, currentY] = polygonPoints[currentIndex]
+  // Basic ray-casting check. each edge crossing flips the flag.
+  for (let index = 0; index < polygonPoints.length; index += 1) {
+    const previousIndex = index === 0 ? polygonPoints.length - 1 : index - 1
+
+    const [currentX, currentY] = polygonPoints[index]
     const [previousX, previousY] = polygonPoints[previousIndex]
 
     const intersects =
@@ -91,7 +90,7 @@ export function pointsToMiniPath(points: PolygonPoint[]): string {
 
   return points
     .map(([x, y], index) => {
-      // Fit any polygon into a padded icon-sized preview while preserving its rough shape.
+      // Keep the preview inside a small padded box so skinny shapes dont hug the edges.
       const normalizedX = 10 + ((x - minX) / width) * 44
       const normalizedY = 10 + ((y - minY) / height) * 44
       return `${index === 0 ? "M" : "L"} ${normalizedX.toFixed(1)} ${normalizedY.toFixed(1)}`

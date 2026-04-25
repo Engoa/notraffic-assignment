@@ -1,36 +1,11 @@
-import {
-  CopyIcon,
-  LoaderCircleIcon,
-  RulerIcon,
-  SaveIcon,
-  Trash2Icon,
-} from "lucide-react"
+import { CopyIcon, LoaderCircleIcon, RulerIcon, SaveIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty"
-import {
-  Field,
-  FieldContent,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { ColorField } from "@/components/misc/ColorField"
 import type { PolygonsManager } from "@/features/polygons/hooks/usePolygonsManager"
@@ -60,38 +35,27 @@ export function PolygonDetails({ manager }: PolygonDetailsProps) {
   } = manager
 
   const isDraftActive = draft.points.length > 0 || draft.isDrawing
-  const activePoints = isDraftActive
-    ? draft.points
-    : (selectedPolygon?.points ?? [])
-
-  const isDraftSaveDisabled =
-    isCreating || draft.points.length < 3 || draft.name.trim().length === 0
-
-  const isPolygonSaveDisabled =
-    isUpdating ||
-    !hasSelectedPolygonChanges ||
-    editor.name.trim().length === 0 ||
-    Boolean(editorError)
-
+  const activePoints = isDraftActive ? draft.points : (selectedPolygon?.points ?? [])
   const isBusy = isDeleting || isUpdating || isCreating
 
-  async function handleCopyCoordinates() {
-    const payload = activePoints
-      .map((point, idx) => `${idx + 1}. ${formatPoint(point)}`)
-      .join("\n")
+  const isDraftSaveDisabled = isCreating || draft.points.length < 3 || draft.name.trim().length === 0
+
+  const isPolygonSaveDisabled =
+    isUpdating || !hasSelectedPolygonChanges || editor.name.trim().length === 0 || Boolean(editorError)
+
+  const handleCopyCoordinates = async () => {
+    const payload = activePoints.map((point, idx) => `${idx + 1}. ${formatPoint(point)}`).join("\n")
 
     await navigator.clipboard.writeText(payload)
     toast.success("Copied coordinates.")
   }
-
-  console.log(isBusy)
 
   return (
     <Card className="xl:col-span-3">
       <CardHeader className="border-b">
         <div className="flex items-center justify-between gap-3">
           <CardTitle className="font-heading text-xl">Details</CardTitle>
-          {isDraftActive ? <Badge variant="secondary">Draft</Badge> : null}
+          {isDraftActive && <Badge variant="secondary">Draft</Badge>}
         </div>
       </CardHeader>
 
@@ -103,10 +67,7 @@ export function PolygonDetails({ manager }: PolygonDetailsProps) {
                 <RulerIcon />
               </EmptyMedia>
               <EmptyTitle>Select a polygon or click the board</EmptyTitle>
-              <EmptyDescription>
-                The current draft or selected polygon will show its details
-                here.
-              </EmptyDescription>
+              <EmptyDescription>The current draft or selected polygon will show its details here.</EmptyDescription>
             </EmptyHeader>
           </Empty>
         ) : (
@@ -129,9 +90,7 @@ export function PolygonDetails({ manager }: PolygonDetailsProps) {
                       placeholder="e.g. Triangle"
                       value={draft.name}
                     />
-                    <FieldDescription>
-                      Add at least 3 points, then save the draft.
-                    </FieldDescription>
+                    <FieldDescription>Add at least 3 points, then save the draft.</FieldDescription>
                     <FieldError>{draftError}</FieldError>
                   </FieldContent>
                 </Field>
@@ -141,50 +100,46 @@ export function PolygonDetails({ manager }: PolygonDetailsProps) {
                   id="draft-color"
                   label="Polygon color"
                   disabled={isBusy}
-                  onChange={(color) =>
-                    setDraft((currentDraft) => ({ ...currentDraft, color }))
-                  }
+                  onChange={(color) => setDraft((currentDraft) => ({ ...currentDraft, color }))}
                 />
               </FieldGroup>
-            ) : selectedPolygon ? (
-              <FieldGroup>
-                <Field data-invalid={Boolean(editorError) || undefined}>
-                  <FieldLabel htmlFor="polygon-name">Polygon name</FieldLabel>
-                  <FieldContent>
-                    <Input
-                      aria-invalid={Boolean(editorError)}
-                      id="polygon-name"
-                      disabled={isBusy}
-                      onChange={(event) =>
-                        setEditor((currentEditor) => ({
-                          ...currentEditor,
-                          name: event.target.value,
-                        }))
-                      }
-                      value={editor.name}
-                    />
-                    <FieldError>{editorError}</FieldError>
-                  </FieldContent>
-                </Field>
+            ) : (
+              selectedPolygon && (
+                <FieldGroup>
+                  <Field data-invalid={Boolean(editorError) || undefined}>
+                    <FieldLabel htmlFor="polygon-name">Polygon name</FieldLabel>
+                    <FieldContent>
+                      <Input
+                        aria-invalid={Boolean(editorError)}
+                        id="polygon-name"
+                        disabled={isBusy}
+                        onChange={(event) =>
+                          setEditor((currentEditor) => ({
+                            ...currentEditor,
+                            name: event.target.value,
+                          }))
+                        }
+                        value={editor.name}
+                      />
+                      <FieldError>{editorError}</FieldError>
+                    </FieldContent>
+                  </Field>
 
-                <ColorField
-                  color={editor.color}
-                  id="polygon-color"
-                  label="Polygon color"
-                  disabled={isBusy}
-                  onChange={(color) =>
-                    setEditor((currentEditor) => ({ ...currentEditor, color }))
-                  }
-                />
-              </FieldGroup>
-            ) : null}
+                  <ColorField
+                    color={editor.color}
+                    id="polygon-color"
+                    label="Polygon color"
+                    disabled={isBusy}
+                    onChange={(color) => setEditor((currentEditor) => ({ ...currentEditor, color }))}
+                  />
+                </FieldGroup>
+              )
+            )}
 
             {activePoints.length > 0 && (
               <div className="animate-in rounded-xl border duration-300 fade-in-0 zoom-in-[0.99]">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
-                  <div className="font-medium">
-                    Coordinates ({activePoints.length})
-                  </div>
+                  <div className="font-medium">Coordinates ({activePoints.length})</div>
 
                   <Button
                     disabled={activePoints.length === 0}
@@ -200,13 +155,11 @@ export function PolygonDetails({ manager }: PolygonDetailsProps) {
                 <div className="flex flex-col gap-2 p-4">
                   {activePoints.map((point, index) => (
                     <div
-                      className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded-lg border bg-muted/30 px-3 py-2 text-sm"
+                      className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded-lg border bg-muted/30 px-3 py-2"
                       key={`${point[0]}-${point[1]}-${index}`}
                     >
                       <span className="font-medium">P{index + 1}</span>
-                      <span className="text-right wrap-break-word text-muted-foreground">
-                        {formatPoint(point)}
-                      </span>
+                      <span className="text-right wrap-break-word text-muted-foreground">{formatPoint(point)}</span>
                     </div>
                   ))}
                 </div>
@@ -220,41 +173,20 @@ export function PolygonDetails({ manager }: PolygonDetailsProps) {
         <CardFooter className="mt-auto flex-col gap-3 border-t bg-card">
           {isDraftActive ? (
             <div className="flex w-full flex-col gap-2">
-              <Button
-                className="w-full"
-                disabled={isDraftSaveDisabled}
-                onClick={saveDraft}
-              >
-                {isCreating ? (
-                  <LoaderCircleIcon className="animate-spin" />
-                ) : (
-                  <SaveIcon />
-                )}
+              <Button className="w-full" disabled={isDraftSaveDisabled} onClick={saveDraft}>
+                {isCreating ? <LoaderCircleIcon className="animate-spin" /> : <SaveIcon />}
                 {isCreating ? "Saving..." : "Save polygon"}
               </Button>
 
-              <Button
-                className="w-full"
-                disabled={isCreating}
-                onClick={resetDraft}
-                variant="outline"
-              >
+              <Button className="w-full" disabled={isCreating} onClick={resetDraft} variant="outline">
                 Reset draft
               </Button>
             </div>
           ) : (
             selectedPolygon && (
               <div className="flex w-full flex-col gap-2">
-                <Button
-                  className="w-full"
-                  disabled={isPolygonSaveDisabled || isDeleting}
-                  onClick={savePolygonDetails}
-                >
-                  {isUpdating ? (
-                    <LoaderCircleIcon className="animate-spin" />
-                  ) : (
-                    <SaveIcon />
-                  )}
+                <Button className="w-full" disabled={isPolygonSaveDisabled || isDeleting} onClick={savePolygonDetails}>
+                  {isUpdating ? <LoaderCircleIcon className="animate-spin" /> : <SaveIcon />}
                   {isUpdating ? "Saving..." : "Save changes"}
                 </Button>
 
@@ -264,11 +196,7 @@ export function PolygonDetails({ manager }: PolygonDetailsProps) {
                   onClick={deleteSelectedPolygon}
                   variant="destructive"
                 >
-                  {isDeleting ? (
-                    <LoaderCircleIcon className="animate-spin" />
-                  ) : (
-                    <Trash2Icon />
-                  )}
+                  {isDeleting ? <LoaderCircleIcon className="animate-spin" /> : <Trash2Icon />}
                   {isDeleting ? "Deleting..." : "Delete polygon"}
                 </Button>
               </div>

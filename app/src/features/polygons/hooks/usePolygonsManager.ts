@@ -1,4 +1,4 @@
-import { startTransition, useState } from "react"
+import { useState } from "react"
 import { toast } from "sonner"
 
 import type { PolygonDraft, PolygonEditor, PolygonPoint } from "@/types/polygon"
@@ -31,58 +31,33 @@ function normalizePolygonEditorValue(value: PolygonEditor) {
   }
 }
 
-function getHasPolygonChanges(
-  polygon: { name: string; color: string } | null,
-  editor: PolygonEditor
-) {
+function getHasPolygonChanges(polygon: { name: string; color: string } | null, editor: PolygonEditor) {
   if (!polygon) return false
 
   // Compare normalized values so stuff like whitespace and such are trimmed
   const normalizedEditor = normalizePolygonEditorValue(editor)
   const normalizedPolygon = normalizePolygonEditorValue(polygon)
 
-  return (
-    normalizedEditor.name !== normalizedPolygon.name ||
-    normalizedEditor.color !== normalizedPolygon.color
-  )
+  return normalizedEditor.name !== normalizedPolygon.name || normalizedEditor.color !== normalizedPolygon.color
 }
 
 export function usePolygonsManager() {
-  const [selectedPolygonId, setSelectedPolygonId] = useState<number | null>(
-    null
-  )
+  const [selectedPolygonId, setSelectedPolygonId] = useState<number | null>(null)
   const [draft, setDraft] = useState<PolygonDraft>(createEmptyDraft)
   const [editor, setEditor] = useState<PolygonEditor>(createEmptyEditor)
 
-  const {
-    polygonsQuery,
-    createPolygonMutation,
-    updatePolygonMutation,
-    deletePolygonMutation,
-  } = usePolygonsQueries()
+  const { polygonsQuery, createPolygonMutation, updatePolygonMutation, deletePolygonMutation } = usePolygonsQueries()
 
   const polygons = [...(polygonsQuery.data ?? [])].sort((left, right) => {
     const nameOrder = left.name.localeCompare(right.name)
     return nameOrder === 0 ? left.id - right.id : nameOrder
   })
 
-  // If the selected polygon disappears after a refetch, clear the stale selection.
-  const effectiveSelectedPolygonId =
-    selectedPolygonId !== null &&
-    polygons.some((polygon) => polygon.id === selectedPolygonId)
-      ? selectedPolygonId
-      : null
-
-  const selectedPolygon =
-    polygons.find((polygon) => polygon.id === effectiveSelectedPolygonId) ??
-    null
+  const selectedPolygon = polygons.find((polygon) => polygon.id === selectedPolygonId) ?? null
 
   const draftValidation = polygonDraftSchema.safeParse(draft)
   const editorValidation = updatePolygonSchema.safeParse(editor)
-  const hasSelectedPolygonChanges = getHasPolygonChanges(
-    selectedPolygon,
-    editor
-  )
+  const hasSelectedPolygonChanges = getHasPolygonChanges(selectedPolygon, editor)
 
   function resetDraft() {
     setDraft(createEmptyDraft())
@@ -91,9 +66,7 @@ export function usePolygonsManager() {
   function addDraftPoint(point: PolygonPoint) {
     if (selectedPolygonId !== null) {
       // Clicking to start a new draft should move us out of edit mode immediately.
-      startTransition(() => {
-        setSelectedPolygonId(null)
-      })
+      setSelectedPolygonId(null)
     }
 
     setDraft((currentDraft) => ({
@@ -129,12 +102,12 @@ export function usePolygonsManager() {
       })
     }
 
-    startTransition(() => setSelectedPolygonId(polygonId))
+    setSelectedPolygonId(polygonId)
   }
 
   function saveDraft() {
     if (!draftValidation.success || draft.points.length < 3) {
-      toast.error("Add a name, choose a color, and place at least 3 points.")
+      toast.error("Add a name and place at least 3 points.")
       return
     }
 
@@ -146,15 +119,13 @@ export function usePolygonsManager() {
       },
       {
         onSuccess: (polygon) => {
-          toast.success(`Saved ${polygon.name}.`)
+          toast.success(`Created ${polygon.name}.`)
           setDraft(createEmptyDraft())
           setEditor({
             name: polygon.name,
             color: polygon.color,
           })
-          startTransition(() => {
-            setSelectedPolygonId(polygon.id)
-          })
+          setSelectedPolygonId(polygon.id)
         },
         onError: (error) => {
           toast.error(getApiErrorMessage(error))
@@ -166,8 +137,7 @@ export function usePolygonsManager() {
   function savePolygonDetails() {
     if (!selectedPolygon) return
 
-    if (!editorValidation.success)
-      return toast.error("Use a valid name and hex color.")
+    if (!editorValidation.success) return toast.error("Use a valid name and hex color.")
 
     updatePolygonMutation.mutate(
       {
@@ -192,9 +162,7 @@ export function usePolygonsManager() {
       onSuccess: () => {
         toast.success(`Deleted ${selectedPolygon.name}.`)
         setEditor(createEmptyEditor())
-        startTransition(() => {
-          setSelectedPolygonId(null)
-        })
+        setSelectedPolygonId(null)
       },
       onError: (error) => {
         toast.error(getApiErrorMessage(error))
@@ -212,15 +180,14 @@ export function usePolygonsManager() {
     editorError:
       editorValidation.success || editor.name.length === 0
         ? null
-        : (editorValidation.error.issues[0]?.message ??
-          "Use valid polygon details."),
+        : (editorValidation.error.issues[0]?.message ?? "Use valid polygon details."),
     isCreating: createPolygonMutation.isPending,
     isDeleting: deletePolygonMutation.isPending,
     isLoading: polygonsQuery.isLoading,
     isUpdating: updatePolygonMutation.isPending,
     polygons,
     selectedPolygon,
-    selectedPolygonId: effectiveSelectedPolygonId,
+    selectedPolygonId: selectedPolygon?.id ?? null,
     addDraftPoint,
     completeDraftOutline,
     deleteSelectedPolygon,
