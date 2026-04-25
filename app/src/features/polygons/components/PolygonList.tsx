@@ -1,13 +1,7 @@
-import { Layers3Icon, LoaderCircleIcon } from "lucide-react"
+import { LoaderCircleIcon, Shapes } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty"
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import type { PolygonsManager } from "@/features/polygons/hooks/usePolygonsManager"
 import { PolygonListItem } from "./PolygonListItem"
 
@@ -38,13 +32,12 @@ export function PolygonList({ manager }: PolygonListProps) {
         ) : polygons.length === 0 ? (
           <Empty className="border border-dashed bg-muted/40">
             <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <Layers3Icon />
+              <EmptyMedia variant="icon" className="size-15">
+                <Shapes className="size-9" />
               </EmptyMedia>
-              <EmptyTitle>No polygons yet</EmptyTitle>
+              <EmptyTitle>No polygons found</EmptyTitle>
               <EmptyDescription>
-                Start drawing on the canvas and the first saved polygon will
-                appear here.
+                Start drawing on the canvas and the first saved polygon will appear here.
               </EmptyDescription>
             </EmptyHeader>
           </Empty>
@@ -54,12 +47,7 @@ export function PolygonList({ manager }: PolygonListProps) {
               const isActive = polygon.id === selectedPolygonId
 
               return (
-                <PolygonListItem
-                  key={polygon.id}
-                  isActive={isActive}
-                  polygon={polygon}
-                  selectPolygon={selectPolygon}
-                />
+                <PolygonListItem key={polygon.id} isActive={isActive} polygon={polygon} selectPolygon={selectPolygon} />
               )
             })}
           </div>

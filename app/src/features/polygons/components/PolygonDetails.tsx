@@ -61,8 +61,8 @@ export function PolygonDetails({ manager }: PolygonDetailsProps) {
         {!isDraftActive && !selectedPolygon ? (
           <Empty className="border border-dashed bg-muted/40">
             <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <RulerIcon />
+              <EmptyMedia variant="icon" className="size-15">
+                <RulerIcon className="size-9" />
               </EmptyMedia>
               <EmptyTitle>Select a polygon or click the board</EmptyTitle>
               <EmptyDescription>The current draft or selected polygon will show its details here.</EmptyDescription>
@@ -87,9 +87,7 @@ export function PolygonDetails({ manager }: PolygonDetailsProps) {
                     placeholder={isDraftActive ? "e.g. Triangle" : undefined}
                     value={form.name}
                   />
-                  {isDraftActive && (
-                    <FieldDescription>Add at least 3 points, then save the draft.</FieldDescription>
-                  )}
+                  {isDraftActive && <FieldDescription>Add at least 3 points, then save the draft.</FieldDescription>}
                   <FieldError>{formError}</FieldError>
                 </FieldContent>
               </Field>
