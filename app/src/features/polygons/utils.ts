@@ -12,23 +12,7 @@ export function formatCoordinate(value: number): string {
   return Number.isInteger(value) ? value.toString() : value.toFixed(1)
 }
 
-export function findPolygonAtPoint(
-  polygons: Polygon[],
-  point: PolygonPoint
-): Polygon | null {
-  for (let index = polygons.length - 1; index >= 0; index -= 1) {
-    if (isPointInsidePolygon(point, polygons[index].points)) {
-      return polygons[index]
-    }
-  }
-
-  return null
-}
-
-export function isPointInsidePolygon(
-  point: PolygonPoint,
-  polygonPoints: PolygonPoint[]
-): boolean {
+function isPointInsidePolygon(point: PolygonPoint, polygonPoints: PolygonPoint[]): boolean {
   let isInside = false
   const [x, y] = point
 
@@ -41,9 +25,7 @@ export function isPointInsidePolygon(
 
     const intersects =
       currentY > y !== previousY > y &&
-      x <
-        ((previousX - currentX) * (y - currentY)) / (previousY - currentY) +
-          currentX
+      x < ((previousX - currentX) * (y - currentY)) / (previousY - currentY) + currentX
 
     if (intersects) {
       isInside = !isInside
@@ -51,6 +33,16 @@ export function isPointInsidePolygon(
   }
 
   return isInside
+}
+
+export function findPolygonAtPoint(polygons: Polygon[], point: PolygonPoint): Polygon | null {
+  for (let index = polygons.length - 1; index >= 0; index -= 1) {
+    if (isPointInsidePolygon(point, polygons[index].points)) {
+      return polygons[index]
+    }
+  }
+
+  return null
 }
 
 export function hexToRgba(color: string, alpha: number): string {
@@ -74,10 +66,8 @@ export function getPolygonStyle(color: string) {
   }
 }
 
-export function pointsToMiniPath(points: PolygonPoint[]): string {
-  if (points.length === 0) {
-    return ""
-  }
+export function pointsToMiniSvgPath(points: PolygonPoint[]): string {
+  if (points.length === 0) return ""
 
   const xs = points.map(([x]) => x)
   const ys = points.map(([, y]) => y)

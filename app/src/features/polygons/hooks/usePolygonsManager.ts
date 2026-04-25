@@ -1,8 +1,8 @@
 import { useState } from "react"
 import { toast } from "sonner"
 
-import type { PolygonDraft, PolygonEditor, PolygonPoint } from "@/types/polygon"
-import { polygonDraftSchema, updatePolygonSchema } from "@/schemas/polygons"
+import type { PolygonDraft, PolygonPoint } from "@/types/polygon"
+import { polygonFormSchema, type PolygonForm } from "@/schemas/polygons"
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage"
 import { DEFAULT_POLYGON_COLOR } from "../constants"
 import { roundPoint } from "../utils"
@@ -11,62 +11,59 @@ import { usePolygonsQueries } from "./usePolygonsQueries"
 function createEmptyDraft(): PolygonDraft {
   return {
     isDrawing: false,
-    name: "",
-    color: DEFAULT_POLYGON_COLOR,
     points: [],
   }
 }
 
-function createEmptyEditor(): PolygonEditor {
+function createEmptyForm(): PolygonForm {
   return {
     name: "",
     color: DEFAULT_POLYGON_COLOR,
   }
 }
 
-function normalizePolygonEditorValue(value: PolygonEditor) {
+function normalizePolygonFormValue(value: PolygonForm) {
   return {
     name: value.name.trim(),
     color: value.color.trim().toUpperCase(),
   }
 }
 
-function getHasPolygonChanges(polygon: { name: string; color: string } | null, editor: PolygonEditor) {
+function getHasPolygonChanges(polygon: { name: string; color: string } | null, form: PolygonForm) {
   if (!polygon) return false
 
   // Compare normalized values so stuff like whitespace and such are trimmed
-  const normalizedEditor = normalizePolygonEditorValue(editor)
-  const normalizedPolygon = normalizePolygonEditorValue(polygon)
+  const normalizedForm = normalizePolygonFormValue(form)
+  const normalizedPolygon = normalizePolygonFormValue(polygon)
 
-  return normalizedEditor.name !== normalizedPolygon.name || normalizedEditor.color !== normalizedPolygon.color
+  return normalizedForm.name !== normalizedPolygon.name || normalizedForm.color !== normalizedPolygon.color
 }
 
 export function usePolygonsManager() {
   const [selectedPolygonId, setSelectedPolygonId] = useState<number | null>(null)
   const [draft, setDraft] = useState<PolygonDraft>(createEmptyDraft)
-  const [editor, setEditor] = useState<PolygonEditor>(createEmptyEditor)
+  const [form, setForm] = useState<PolygonForm>(createEmptyForm)
 
   const { polygonsQuery, createPolygonMutation, updatePolygonMutation, deletePolygonMutation } = usePolygonsQueries()
 
-  const polygons = [...(polygonsQuery.data ?? [])].sort((left, right) => {
-    const nameOrder = left.name.localeCompare(right.name)
-    return nameOrder === 0 ? left.id - right.id : nameOrder
-  })
+  const { data: polygons = [] } = polygonsQuery
 
   const selectedPolygon = polygons.find((polygon) => polygon.id === selectedPolygonId) ?? null
+  const isDraftActive = draft.points.length > 0 || draft.isDrawing
 
-  const draftValidation = polygonDraftSchema.safeParse(draft)
-  const editorValidation = updatePolygonSchema.safeParse(editor)
-  const hasSelectedPolygonChanges = getHasPolygonChanges(selectedPolygon, editor)
+  const formValidation = polygonFormSchema.safeParse(form)
+  const hasSelectedPolygonChanges = getHasPolygonChanges(selectedPolygon, form)
 
   function resetDraft() {
     setDraft(createEmptyDraft())
+    setForm(createEmptyForm())
   }
 
   function addDraftPoint(point: PolygonPoint) {
     if (selectedPolygonId !== null) {
-      // Clicking to start a new draft should move us out of edit mode immediately.
+      // Clicking to start a new draft will move us out of edit mode.
       setSelectedPolygonId(null)
+      setForm(createEmptyForm())
     }
 
     setDraft((currentDraft) => ({
@@ -77,59 +74,51 @@ export function usePolygonsManager() {
   }
 
   function completeDraftOutline() {
-    setDraft((currentDraft) => ({
-      ...currentDraft,
-      isDrawing: false,
-    }))
+    setDraft((currentDraft) => ({ ...currentDraft, isDrawing: false }))
   }
 
   function undoDraftPoint() {
-    setDraft((currentDraft) => ({
-      ...currentDraft,
-      points: currentDraft.points.slice(0, -1),
-    }))
+    setDraft((currentDraft) => ({ ...currentDraft, points: currentDraft.points.slice(0, -1) }))
   }
 
   function selectPolygon(polygonId: number) {
-    setDraft(createEmptyDraft())
-
-    const polygon = polygons.find((item) => item.id === polygonId)
-
-    if (polygon) {
-      setEditor({
-        name: polygon.name,
-        color: polygon.color,
-      })
+    // If any draft is currently created, when selecting a polygon, reset it.
+    if (draft.points.length) {
+      setDraft(createEmptyDraft())
     }
 
-    setSelectedPolygonId(polygonId)
+    const polygon = polygons.find((item) => item.id === polygonId)
+    if (!polygon) return
+
+    const isTheSame = polygon.id === selectedPolygonId
+
+    setForm(isTheSame ? createEmptyForm() : { name: polygon.name, color: polygon.color })
+    setSelectedPolygonId(isTheSame ? null : polygon.id)
   }
 
   function saveDraft() {
-    if (!draftValidation.success || draft.points.length < 3) {
+    if (!formValidation.success || draft.points.length < 3) {
       toast.error("Add a name and place at least 3 points.")
       return
     }
 
     createPolygonMutation.mutate(
       {
-        name: draftValidation.data.name,
-        color: draftValidation.data.color,
+        name: formValidation.data.name,
+        color: formValidation.data.color,
         points: draft.points,
       },
       {
         onSuccess: (polygon) => {
           toast.success(`Created ${polygon.name}.`)
           setDraft(createEmptyDraft())
-          setEditor({
+          setForm({
             name: polygon.name,
             color: polygon.color,
           })
           setSelectedPolygonId(polygon.id)
         },
-        onError: (error) => {
-          toast.error(getApiErrorMessage(error))
-        },
+        onError: (error) => toast.error(getApiErrorMessage(error)),
       }
     )
   }
@@ -137,20 +126,18 @@ export function usePolygonsManager() {
   function savePolygonDetails() {
     if (!selectedPolygon) return
 
-    if (!editorValidation.success) return toast.error("Use a valid name and hex color.")
+    if (!formValidation.success) {
+      return toast.error("Use a valid name and hex color.")
+    }
 
     updatePolygonMutation.mutate(
       {
         id: selectedPolygon.id,
-        input: editorValidation.data,
+        input: formValidation.data,
       },
       {
-        onSuccess: (polygon) => {
-          toast.success(`Updated ${polygon.name}.`)
-        },
-        onError: (error) => {
-          toast.error(getApiErrorMessage(error))
-        },
+        onSuccess: (polygon) => toast.success(`Updated ${polygon.name}.`),
+        onError: (error) => toast.error(getApiErrorMessage(error)),
       }
     )
   }
@@ -161,27 +148,23 @@ export function usePolygonsManager() {
     deletePolygonMutation.mutate(selectedPolygon.id, {
       onSuccess: () => {
         toast.success(`Deleted ${selectedPolygon.name}.`)
-        setEditor(createEmptyEditor())
+        setForm(createEmptyForm())
         setSelectedPolygonId(null)
       },
-      onError: (error) => {
-        toast.error(getApiErrorMessage(error))
-      },
+      onError: (error) => toast.error(getApiErrorMessage(error)),
     })
   }
 
   return {
     draft,
-    draftError:
-      draftValidation.success || draft.name.length === 0
+    form,
+    formError:
+      formValidation.success || form.name.length === 0
         ? null
-        : (draftValidation.error.issues[0]?.message ?? "Use a valid draft."),
-    editor,
-    editorError:
-      editorValidation.success || editor.name.length === 0
-        ? null
-        : (editorValidation.error.issues[0]?.message ?? "Use valid polygon details."),
+        : (formValidation.error.issues[0]?.message ?? "Use valid polygon details."),
+    hasSelectedPolygonChanges,
     isCreating: createPolygonMutation.isPending,
+    isDraftActive,
     isDeleting: deletePolygonMutation.isPending,
     isLoading: polygonsQuery.isLoading,
     isUpdating: updatePolygonMutation.isPending,
@@ -191,13 +174,12 @@ export function usePolygonsManager() {
     addDraftPoint,
     completeDraftOutline,
     deleteSelectedPolygon,
-    hasSelectedPolygonChanges,
     resetDraft,
     saveDraft,
     savePolygonDetails,
     selectPolygon,
     setDraft,
-    setEditor,
+    setForm,
     undoDraftPoint,
   }
 }

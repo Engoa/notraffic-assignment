@@ -1,24 +1,7 @@
-import {
-  LoaderCircleIcon,
-  MinusIcon,
-  MousePointerClickIcon,
-  PlusIcon,
-  RotateCcwIcon,
-  Undo2Icon,
-} from "lucide-react"
-import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type MouseEvent,
-} from "react"
+import { LoaderCircleIcon, MinusIcon, MousePointerClickIcon, PlusIcon, RotateCcwIcon, Undo2Icon } from "lucide-react"
+import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent } from "react"
 
-import {
-  DEFAULT_POLYGON_COLOR,
-  POLYGON_IMAGE_SIZE,
-  POLYGON_IMAGE_URL,
-} from "../constants"
+import { DEFAULT_POLYGON_COLOR, POLYGON_IMAGE_SIZE, POLYGON_IMAGE_URL } from "../constants"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { PolygonsManager } from "@/features/polygons/hooks/usePolygonsManager"
@@ -57,6 +40,7 @@ export function PolygonCanvas({ manager }: PolygonCanvasProps) {
     addDraftPoint,
     completeDraftOutline,
     draft,
+    form,
     isCreating,
     isDeleting,
     isUpdating,
@@ -124,21 +108,14 @@ export function PolygonCanvas({ manager }: PolygonCanvasProps) {
 
     if (draft.points.length > 0) {
       drawDraft({
-        color: draft.color || DEFAULT_POLYGON_COLOR,
+        color: form.color || DEFAULT_POLYGON_COLOR,
         context,
         hoverPoint,
         points: draft.points,
         stageSize,
       })
     }
-  }, [
-    draft.color,
-    draft.points,
-    hoverPoint,
-    polygons,
-    selectedPolygonId,
-    stageSize,
-  ])
+  }, [draft.points, form.color, hoverPoint, polygons, selectedPolygonId, stageSize])
 
   function handleCanvasClick(event: MouseEvent<HTMLCanvasElement>) {
     if (isBusy) return
@@ -169,28 +146,18 @@ export function PolygonCanvas({ manager }: PolygonCanvasProps) {
     if (isBusy || !draft.isDrawing) return
 
     const point = getImagePoint(event)
-    setHoverPoint(
-      shouldSnapToFirstPoint(draft.points, point) ? draft.points[0] : point
-    )
+    setHoverPoint(shouldSnapToFirstPoint(draft.points, point) ? draft.points[0] : point)
   }
 
   return (
     <div className="flex flex-1 flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2 rounded-xl border bg-muted/30 p-2">
-        <Button
-          disabled={isBusy || draft.points.length === 0}
-          onClick={undoDraftPoint}
-          variant="outline"
-        >
+        <Button disabled={isBusy || draft.points.length === 0} onClick={undoDraftPoint} variant="outline">
           <Undo2Icon />
           Undo point
         </Button>
 
-        <Button
-          disabled={isBusy || draft.points.length === 0}
-          onClick={resetDraft}
-          variant="outline"
-        >
+        <Button disabled={isBusy || draft.points.length === 0} onClick={resetDraft} variant="outline">
           <RotateCcwIcon />
           Reset draft
         </Button>
@@ -198,11 +165,7 @@ export function PolygonCanvas({ manager }: PolygonCanvasProps) {
         <div className="flex w-full items-center justify-end gap-2 sm:ml-auto sm:w-auto">
           <Button
             disabled={isBusy || zoomLevel <= 1}
-            onClick={() =>
-              setZoomLevel((value) =>
-                Math.max(1, Number((value - 0.1).toFixed(1)))
-              )
-            }
+            onClick={() => setZoomLevel((value) => Math.max(1, Number((value - 0.1).toFixed(1))))}
             size="icon"
             variant="outline"
           >
@@ -213,11 +176,7 @@ export function PolygonCanvas({ manager }: PolygonCanvasProps) {
 
           <Button
             disabled={isBusy || zoomLevel >= 1.6}
-            onClick={() =>
-              setZoomLevel((value) =>
-                Math.min(1.6, Number((value + 0.1).toFixed(1)))
-              )
-            }
+            onClick={() => setZoomLevel((value) => Math.min(1.6, Number((value + 0.1).toFixed(1))))}
             size="icon"
             variant="outline"
           >
@@ -270,9 +229,7 @@ export function PolygonCanvas({ manager }: PolygonCanvasProps) {
             ref={canvasRef}
           />
 
-          {isBusy && (
-            <div className="absolute inset-0 z-10 animate-in bg-background/30 fade-in-10" />
-          )}
+          {isBusy && <div className="absolute inset-0 z-10" />}
         </div>
       </div>
     </div>
@@ -311,9 +268,7 @@ function drawPolygon({
   polygon: Polygon
   stageSize: StageSize
 }) {
-  const scaledPoints = polygon.points.map((point) =>
-    scalePoint(point, stageSize)
-  )
+  const scaledPoints = polygon.points.map((point) => scalePoint(point, stageSize))
   const polygonStyle = getPolygonStyle(polygon.color)
 
   if (scaledPoints.length < 2) return
@@ -399,9 +354,7 @@ function drawDraft({
 
   // If hover snaps back to point zero we switch the preview into close mode.
   const isHoveringCloseTarget =
-    hoverPoint !== null &&
-    hoverPoint[0] === points[0]?.[0] &&
-    hoverPoint[1] === points[0]?.[1]
+    hoverPoint !== null && hoverPoint[0] === points[0]?.[0] && hoverPoint[1] === points[0]?.[1]
 
   context.save()
   if (canClose) {
@@ -437,31 +390,31 @@ function drawDraft({
   context.shadowColor = polygonStyle.draftHalo
   context.stroke()
 
+  // Paints a faint line back to the first point
   if (canClose) {
     context.beginPath()
     context.setLineDash([3, 7])
     context.moveTo(lastPoint[0], lastPoint[1])
     context.lineTo(firstPoint[0], firstPoint[1])
-    context.strokeStyle = polygonStyle.halo
-    context.lineWidth = 1.25
+    context.strokeStyle = polygonStyle.draftHalo
+    context.lineWidth = 1.8
     context.stroke()
   }
 
+  // This last guide line helps show whether the next click will add a point or finish it.
   if (scaledHoverPoint && canClose) {
-    // This last guide line helps show whether the next click will add a point or finish it.
     context.beginPath()
     context.setLineDash(isHoveringCloseTarget ? [2, 4] : [3, 7])
     context.moveTo(scaledHoverPoint[0], scaledHoverPoint[1])
     context.lineTo(firstPoint[0], firstPoint[1])
-    context.strokeStyle = isHoveringCloseTarget
-      ? polygonStyle.stroke
-      : polygonStyle.halo
-    context.lineWidth = isHoveringCloseTarget ? 2 : 1.25
+    context.strokeStyle = isHoveringCloseTarget ? polygonStyle.stroke : polygonStyle.draftHalo
+    context.lineWidth = isHoveringCloseTarget ? 2.2 : 1.8
     context.stroke()
   }
 
   context.restore()
 
+  // Draws The points
   for (const [index, [x, y]] of scaledPoints.entries()) {
     context.save()
     context.beginPath()
@@ -470,23 +423,22 @@ function drawDraft({
     context.lineWidth = index === 0 ? 2.5 : 0
     context.shadowBlur = index === 0 ? 10 : 0
     context.shadowColor = polygonStyle.draftHalo
-    context.arc(
-      x,
-      y,
-      index === 0 && isHoveringCloseTarget ? 6.5 : index === 0 ? 5 : 3.5,
-      0,
-      Math.PI * 2
-    )
+    context.arc(x, y, index === 0 && isHoveringCloseTarget ? 6.5 : index === 0 ? 5 : 3.5, 0, Math.PI * 2)
     context.fill()
+
     if (index === 0) {
+      // The first point gets the ring so it's obvious which dot closes the shape.
       context.stroke()
     }
+
     context.restore()
   }
 
   if (scaledHoverPoint) {
     context.save()
     context.beginPath()
+    // Small ghost dot for the current hover position before the user commits a point.
+
     context.fillStyle = polygonStyle.stroke
     context.globalAlpha = 0.16
     context.arc(scaledHoverPoint[0], scaledHoverPoint[1], 5, 0, Math.PI * 2)

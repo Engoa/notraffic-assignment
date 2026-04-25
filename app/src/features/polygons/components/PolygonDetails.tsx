@@ -19,29 +19,27 @@ export function PolygonDetails({ manager }: PolygonDetailsProps) {
   const {
     deleteSelectedPolygon,
     draft,
-    draftError,
-    editor,
-    editorError,
+    form,
+    formError,
     hasSelectedPolygonChanges,
     isCreating,
+    isDraftActive,
     isDeleting,
     isUpdating,
     resetDraft,
     saveDraft,
     savePolygonDetails,
     selectedPolygon,
-    setDraft,
-    setEditor,
+    setForm,
   } = manager
 
-  const isDraftActive = draft.points.length > 0 || draft.isDrawing
   const activePoints = isDraftActive ? draft.points : (selectedPolygon?.points ?? [])
   const isBusy = isDeleting || isUpdating || isCreating
 
-  const isDraftSaveDisabled = isCreating || draft.points.length < 3 || draft.name.trim().length === 0
+  const isDraftSaveDisabled = isCreating || draft.points.length < 3 || form.name.trim().length === 0
 
   const isPolygonSaveDisabled =
-    isUpdating || !hasSelectedPolygonChanges || editor.name.trim().length === 0 || Boolean(editorError)
+    isUpdating || !hasSelectedPolygonChanges || form.name.trim().length === 0 || Boolean(formError)
 
   const handleCopyCoordinates = async () => {
     const payload = activePoints.map((point, idx) => `${idx + 1}. ${formatPoint(point)}`).join("\n")
@@ -72,69 +70,38 @@ export function PolygonDetails({ manager }: PolygonDetailsProps) {
           </Empty>
         ) : (
           <div className="flex flex-1 animate-in flex-col gap-5 overflow-y-scroll duration-300 fade-in-0">
-            {isDraftActive ? (
-              <FieldGroup>
-                <Field data-invalid={Boolean(draftError) || undefined}>
-                  <FieldLabel htmlFor="draft-name">Polygon name</FieldLabel>
-                  <FieldContent>
-                    <Input
-                      aria-invalid={Boolean(draftError)}
-                      id="draft-name"
-                      disabled={isBusy}
-                      onChange={(event) =>
-                        setDraft((currentDraft) => ({
-                          ...currentDraft,
-                          name: event.target.value,
-                        }))
-                      }
-                      placeholder="e.g. Triangle"
-                      value={draft.name}
-                    />
-                    <FieldDescription>Add at least 3 points, then save the draft.</FieldDescription>
-                    <FieldError>{draftError}</FieldError>
-                  </FieldContent>
-                </Field>
-
-                <ColorField
-                  color={draft.color}
-                  id="draft-color"
-                  label="Polygon color"
-                  disabled={isBusy}
-                  onChange={(color) => setDraft((currentDraft) => ({ ...currentDraft, color }))}
-                />
-              </FieldGroup>
-            ) : (
-              selectedPolygon && (
-                <FieldGroup>
-                  <Field data-invalid={Boolean(editorError) || undefined}>
-                    <FieldLabel htmlFor="polygon-name">Polygon name</FieldLabel>
-                    <FieldContent>
-                      <Input
-                        aria-invalid={Boolean(editorError)}
-                        id="polygon-name"
-                        disabled={isBusy}
-                        onChange={(event) =>
-                          setEditor((currentEditor) => ({
-                            ...currentEditor,
-                            name: event.target.value,
-                          }))
-                        }
-                        value={editor.name}
-                      />
-                      <FieldError>{editorError}</FieldError>
-                    </FieldContent>
-                  </Field>
-
-                  <ColorField
-                    color={editor.color}
-                    id="polygon-color"
-                    label="Polygon color"
+            <FieldGroup>
+              <Field data-invalid={Boolean(formError) || undefined}>
+                <FieldLabel htmlFor="polygon-form-name">Polygon name</FieldLabel>
+                <FieldContent>
+                  <Input
+                    aria-invalid={Boolean(formError)}
+                    id="polygon-form-name"
                     disabled={isBusy}
-                    onChange={(color) => setEditor((currentEditor) => ({ ...currentEditor, color }))}
+                    onChange={(event) =>
+                      setForm((currentForm) => ({
+                        ...currentForm,
+                        name: event.target.value,
+                      }))
+                    }
+                    placeholder={isDraftActive ? "e.g. Triangle" : undefined}
+                    value={form.name}
                   />
-                </FieldGroup>
-              )
-            )}
+                  {isDraftActive && (
+                    <FieldDescription>Add at least 3 points, then save the draft.</FieldDescription>
+                  )}
+                  <FieldError>{formError}</FieldError>
+                </FieldContent>
+              </Field>
+
+              <ColorField
+                color={form.color}
+                id="polygon-form-color"
+                label="Polygon color"
+                disabled={isBusy}
+                onChange={(color) => setForm((currentForm) => ({ ...currentForm, color }))}
+              />
+            </FieldGroup>
 
             {activePoints.length > 0 && (
               <div className="animate-in rounded-xl border duration-300 fade-in-0 zoom-in-[0.99]">

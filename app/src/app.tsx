@@ -1,7 +1,7 @@
 import { Toaster } from "sonner"
 import { AppLayout } from "./components/misc/AppLayout"
 import { Polygons } from "./pages/Polygons"
-import { useThemeStore } from "./stores/useThemeStore"
+import { useThemeStore } from "./stores/theme"
 
 export const App = () => {
   const { setTheme, theme } = useThemeStore()
@@ -9,7 +9,7 @@ export const App = () => {
   return (
     <AppLayout setTheme={setTheme} theme={theme}>
       <Polygons />
-      <Toaster closeButton position="bottom-right" richColors theme={theme} />
+      <Toaster closeButton position="top-right" richColors theme={theme} />
     </AppLayout>
   )
 }

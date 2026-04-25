@@ -20,12 +20,5 @@ export type UpdatePolygonInput = {
 
 export type PolygonDraft = {
   isDrawing: boolean
-  name: string
-  color: string
   points: PolygonPoint[]
-}
-
-export type PolygonEditor = {
-  name: string
-  color: string
 }

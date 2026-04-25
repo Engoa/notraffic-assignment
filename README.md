@@ -15,4 +15,4 @@ While in root directory, run the following:
 ## Local Development
 
 - Web: `http://localhost:5173`
-- API: `http://localhost:5001/api/v1/polygons`
+- API: `http://localhost:5001/v1/polygons`

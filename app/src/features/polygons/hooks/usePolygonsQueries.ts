@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 import { polygonApi } from "@/api/services/polygons"
-import type { CreatePolygonInput, UpdatePolygonInput } from "@/types/polygon"
+import type { UpdatePolygonInput } from "@/types/polygon"
 
 const polygonKeys = {
   all: ["polygons"] as const,
@@ -20,16 +20,15 @@ export function usePolygonsQueries() {
       queryFn: polygonApi.list,
     }),
     createPolygonMutation: useMutation({
-      mutationFn: (input: CreatePolygonInput) => polygonApi.create(input),
+      mutationFn: polygonApi.create,
       onSuccess: invalidatePolygons,
     }),
     updatePolygonMutation: useMutation({
-      mutationFn: ({ id, input }: { id: number; input: UpdatePolygonInput }) =>
-        polygonApi.update(id, input),
+      mutationFn: ({ id, input }: { id: number; input: UpdatePolygonInput }) => polygonApi.update(id, input),
       onSuccess: invalidatePolygons,
     }),
     deletePolygonMutation: useMutation({
-      mutationFn: (polygonId: number) => polygonApi.remove(polygonId),
+      mutationFn: polygonApi.remove,
       onSuccess: invalidatePolygons,
     }),
   }

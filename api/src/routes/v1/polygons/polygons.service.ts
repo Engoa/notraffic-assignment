@@ -14,7 +14,7 @@ import { PolygonRecord } from './polygon.types';
 
 const roundCoordinate = (value: number): number => Number(value.toFixed(1));
 const STORAGE_PATH = 'data/polygons.json';
-const ACTION_DELAY_MS = 5000;
+const ACTION_DELAY_MS = 0;
 
 @Injectable()
 export class PolygonsService implements OnModuleInit {
@@ -102,8 +102,7 @@ export class PolygonsService implements OnModuleInit {
   private async readPolygons(): Promise<PolygonRecord[]> {
     try {
       const fileContents = await fs.readFile(STORAGE_PATH, 'utf8');
-      const polygons = JSON.parse(fileContents) as PolygonRecord[];
-      return polygons.sort((left, right) => left.id - right.id);
+      return JSON.parse(fileContents);
     } catch (error) {
       throw new InternalServerErrorException({
         code: 'POLYGON_STORAGE_ERROR',

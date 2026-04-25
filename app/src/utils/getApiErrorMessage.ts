@@ -1,4 +1,4 @@
-import { ApiError } from "@/types/api-error"
+import { ApiError } from "@/api/api-error"
 
 export function getApiErrorMessage(error: unknown): string {
   if (error instanceof ApiError) return error.message

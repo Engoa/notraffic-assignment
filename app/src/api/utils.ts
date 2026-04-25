@@ -1,11 +1,9 @@
-import { type ApiErrorResponse, ApiError } from "@/types/api-error"
+import { type ApiErrorResponse } from "@/types/api"
 import { type Options, HTTPError } from "ky"
 import { kyInstance } from "./instance"
+import { ApiError } from "./api-error"
 
-export async function requestJson<T>(
-  input: string,
-  init?: Options
-): Promise<T> {
+export async function requestJson<T>(input: string, init?: Options): Promise<T> {
   try {
     return await kyInstance(input, init).json<T>()
   } catch (error) {
@@ -19,11 +17,7 @@ export async function requestJson<T>(
         payload = undefined
       }
 
-      throw new ApiError(
-        payload?.message || error.message || "Request failed",
-        payload,
-        error.response.status
-      )
+      throw new ApiError(payload?.message || error.message || "Request failed", payload, error.response.status)
     }
 
     if (error instanceof Error) {
