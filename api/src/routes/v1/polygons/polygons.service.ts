@@ -14,7 +14,7 @@ import { PolygonRecord } from './polygon.types';
 
 const roundCoordinate = (value: number): number => Number(value.toFixed(1));
 const STORAGE_PATH = 'data/polygons.json';
-const ACTION_DELAY_MS = 0;
+const ACTION_DELAY_MS = 5000;
 
 @Injectable()
 export class PolygonsService implements OnModuleInit {
