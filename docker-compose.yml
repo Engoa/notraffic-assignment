@@ -1,0 +1,15 @@
+services:
+  api:
+    build:
+      context: ./api
+    environment:
+      NODE_ENV: production
+      PORT: 5001
+      CORS_ORIGIN: http://localhost:5173
+    ports:
+      - "5001:5001"
+    volumes:
+      - api-data:/app/data
+
+volumes:
+  api-data:
